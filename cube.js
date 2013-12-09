@@ -5,7 +5,7 @@ function go () {
 	var VIEW_ANGLE = 45,
 	    ASPECT = WIDTH / HEIGHT,
 	    NEAR = 0.1,
-	    FAR = 1000;
+	    FAR = 10000;
 
 	var container = document.getElementById('c');
 	container.requestPointerLock = container.requestPointerLock ||
@@ -41,7 +41,7 @@ function go () {
 			}));
 	//scene.add(sphere);
 
-	var ambientLight = new THREE.AmbientLight(0x000044);
+	var ambientLight = new THREE.AmbientLight(0x333399);
 	scene.add(ambientLight);
 
 	var density = .0005;
