@@ -1,41 +1,46 @@
-var size = 4;
-var hsize = size / 2;
+function Level (locations, x, y, z) {
+	this.locations = locations.slice(0);
+	this.z = z;
+	this.x = x;
+	this.y = y;
 
-function Level (locations, offsetX, offsetY, height) {
-	this.locations = locations;
-	this.height = height;
-	this.offsetX = -offsetX;
-	this.offsetY = -offsetY;
+	this.size = 1;
 
-	this.init = function () {
-		this.buffer = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-		var r = [];
+	this.cubes = [];
+
+	this.init = function (scene) {
+		var pointLight = new THREE.DirectionalLight(0xFFFFFF);
+		pointLight.position.x = 10;
+		pointLight.position.y = 50;
+		pointLight.position.z = this.z + 100;
+		scene.add(pointLight);
+
 		for (var i = 0; i < this.locations.length; i++) {
 			var l = this.locations[i];
-			r = r.concat([
-				size*l[0] + hsize + this.offsetX,
-				size*l[1] + hsize + this.offsetY, 0,
-				size*l[0] - hsize + this.offsetX,
-				size*l[1] + hsize + this.offsetY, 0,
-				size*l[0] + hsize + this.offsetX,
-				size*l[1] - hsize + this.offsetY, 0,
-				size*l[0] - hsize + this.offsetX,
-				size*l[1] - hsize + this.offsetY, 0,
-				]);
+			var cube = new THREE.Mesh(
+					new THREE.CubeGeometry(this.size, this.size, this.size),
+					new THREE.MeshLambertMaterial({
+						color: Math.floor(Math.random() * 16777216),
+					}));
+			cube.position.set(this.x + l[0]*this.size, this.y + l[1]*this.size, this.z + l[2]*this.size);
+			cube.castShadow = true;
+			cube.receiveShadow = true;
+			this.cubes.push(cube);
+			scene.add(cube);
 		}
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(r), gl.STATIC_DRAW);
 	};
 
-	this.above = function (x, y) {
-		x = -x;
-		y = -y;
+	this.collide = function (x, y, z, height) {
+		var size = this.size;
+		var hsize = this.size / 2;
 		for (var i = 0; i < this.locations.length; i++) {
 			var l = this.locations[i];
-			if (size * l[0] + hsize + this.offsetX < x 
-					|| size * l[0] - hsize + this.offsetX > x
-					|| size * l[1] + hsize + this.offsetY < y
-					|| size * l[1] - hsize + this.offsetY > y)
+			if (size * l[0] + this.x + hsize < x 
+					|| size * l[0] + this.x - hsize > x
+					|| size * l[1] + this.y + hsize < y
+					|| size * l[1] + this.y - hsize > y
+					|| size * l[2] + this.z + hsize < z - height
+					|| size * l[2] + this.z - hsize > z)
 				continue;
 			return true;
 		}
@@ -43,14 +48,15 @@ function Level (locations, offsetX, offsetY, height) {
 	};
 }
 
-function generateLevel (density, hwidth, hheight, ox, oy) {
+function generateLevel (density, hwidth, hheight, ox, oy, z) {
 	var r = [];
 	for (var i = -hwidth; i < hwidth; i++) {
 		for (var j = -hheight; j < hheight; j++) {
-			if (Math.random() < density) {
-				r.push([i, j]);
+			for (var k = -hheight; k < hheight; k++) {
+				if (Math.random() < density)
+					r.push([i, j, k]);
 			}
 		}
 	}
-	return new Level(r, ox, oy, 0);
+	return new Level(r, ox, oy, z);
 }

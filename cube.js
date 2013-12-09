@@ -1,164 +1,62 @@
-var gl;
-
-function getShader(gl, id) {
-	var shaderScript, theSource, currentChild, shader;
-
-	shaderScript = document.getElementById(id);
-
-	if (!shaderScript) {
-		return null;
-	}
-
-	theSource = "";
-	currentChild = shaderScript.firstChild;
-
-	while(currentChild) {
-		if (currentChild.nodeType == currentChild.TEXT_NODE) {
-			theSource += currentChild.textContent;
-		}
-
-		currentChild = currentChild.nextSibling;
-	}
-
-	if (shaderScript.type == "x-shader/x-fragment") {
-		shader = gl.createShader(gl.FRAGMENT_SHADER);
-	} else if (shaderScript.type == "x-shader/x-vertex") {
-		shader = gl.createShader(gl.VERTEX_SHADER);
-	} else {
-		// Unknown shader type
-		return null;
-	}
-	gl.shaderSource(shader, theSource);
-
-	// Compile the shader program
-	gl.compileShader(shader);  
-
-	// See if it compiled successfully
-	if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {  
-		alert("An error occurred compiling the shaders: " + gl.getShaderInfoLog(shader));  
-		return null;  
-	}
-
-	return shader;
-}
-
-function initShaders() {
-	var fragmentShader = getShader(gl, "shader-fs");
-	var vertexShader = getShader(gl, "shader-vs");
-
-	// Create the shader program
-
-	shaderProgram = gl.createProgram();
-	gl.attachShader(shaderProgram, vertexShader);
-	gl.attachShader(shaderProgram, fragmentShader);
-	gl.linkProgram(shaderProgram);
-
-	// If creating the shader program failed, alert
-
-	if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-		alert("Unable to initialize the shader program.");
-	}
-
-	gl.useProgram(shaderProgram);
-
-	vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-	gl.enableVertexAttribArray(vertexPositionAttribute);
-}
-
-var horizAspect;
-
-function drawScene() {
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	    
-	perspectiveMatrix = makePerspective(45, horizAspect, 0.1, 100.0);
-	loadIdentity();
-	multMatrix(player.perspectiveM());
-		  
-	setMatrixUniforms();
-	gl.bindBuffer(gl.ARRAY_BUFFER, level.buffer);
-	gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-	for (var i = 0; i < level.locations.length; i++) {
-		gl.drawArrays(gl.TRIANGLE_STRIP, i*4, 4);
-	}
-}
-
-var mvMatrixStack = [];
-
-function loadIdentity() {
-	mvMatrix = Matrix.I(4);
-}
-
-function multMatrix(m) {
-	mvMatrix = mvMatrix.x(m);
-}
-
-function mvTranslate(v) {
-	multMatrix(Matrix.Translation($V([v[0], v[1], v[2]])).ensure4x4());
-}
-
-function setMatrixUniforms() {
-	var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-	gl.uniformMatrix4fv(pUniform, false, new Float32Array(perspectiveMatrix.flatten()));
-
-	var mvUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
-	gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix.flatten()));
-}
-
-function mvPushMatrix(m) {
-	  if (m) {
-		  mvMatrixStack.push(m.dup());
-		  mvMatrix = m.dup();
-	  } else {
-		  mvMatrixStack.push(mvMatrix.dup());
-	  }
-}
-
-function mvPopMatrix() {
-	if (!mvMatrixStack.length) {
-		throw("Can't pop from an empty matrix stack.");
-	}
-
-	mvMatrix = mvMatrixStack.pop();
-	return mvMatrix;
-}
-
 function go () {
-	var canvas = document.getElementById('c');
-	canvas.width = window.innerWidth - 20;
-	canvas.height = window.innerHeight - 20;
+	var WIDTH = window.innerWidth - 20;
+	var HEIGHT = window.innerHeight - 20;
 
-	canvas.requestPointerLock = canvas.requestPointerLock ||
-		canvas.mozRequestPointerLock ||
-		canvas.webkitRequestPointerLock;
-	canvas.onclick = function () {
-		canvas.requestPointerLock();
+	var VIEW_ANGLE = 45,
+	    ASPECT = WIDTH / HEIGHT,
+	    NEAR = 0.1,
+	    FAR = 1000;
+
+	var container = document.getElementById('c');
+	container.requestPointerLock = container.requestPointerLock ||
+		container.mozRequestPointerLock ||
+		container.webkitRequestPointerLock;
+	container.onclick = function () {
+		container.requestPointerLock();
 	}
 
-	horizAspect = canvas.width / canvas.height;
+	var renderer = new THREE.WebGLRenderer();
 
-	gl = canvas.getContext('webgl');
+	var camera = new THREE.PerspectiveCamera(
+			VIEW_ANGLE,
+			ASPECT,
+			NEAR,
+			FAR);
+	camera.rotation.order = "ZYX";
+	camera.position.z = 300;
 
-	gl.clearColor(0, 0, 0, 1);
-	gl.enable(gl.DEPTH_TEST);
-	gl.depthFunc(gl.LEQUAL);
-	gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+	var scene = new THREE.Scene();
 
-	initShaders();
+	scene.add(camera);
+	renderer.setSize(WIDTH, HEIGHT);
+
+	container.appendChild(renderer.domElement);
 
 	player = new Player;
-	//enemy = new Enemy;
-	var density = 1;
-	level = generateLevel(density, 4, 4, player.x, player.y);
-	level.init();
+
+	var sphere = new THREE.Mesh(
+			new THREE.SphereGeometry(1, 16, 16),
+			new THREE.MeshLambertMaterial({
+				color: 0xFF0000,
+			}));
+	//scene.add(sphere);
+
+	var ambientLight = new THREE.AmbientLight(0x000044);
+	scene.add(ambientLight);
+
+	var density = .0005;
+	var hw = 50, hh = 50;
+	levels = [generateLevel(density, hw, hh, player.x, player.y, 0)];
+	levels[0].init(scene);
 
 	(function tick() {
 		if (player.tick()) {
-			level = generateLevel(density, 4, 4, player.x, player.y);
-			density *= .9;
-			level.init();
-			player.z += 40;
 		}
-		drawScene();
+		camera.position = player.position;
+
+		camera.rotation.set(player.alpha, player.beta, player.gamma);
+
+		renderer.render(scene, camera);
 
 		window.requestAnimationFrame(tick);
 	})();

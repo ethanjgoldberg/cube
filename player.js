@@ -7,46 +7,65 @@ addEventListener('keyup', function (e) {
 });
 
 function Player () {
-	this.x = 0;
-	this.y = 0;
-	this.z = 40;
+	this.position = new THREE.Vector3(0, 0, 40);
+
+	Object.defineProperty(this, 'x', {
+		get: function () {
+			return this.position.x;
+		},
+		set: function (x) {
+			this.position.x = x;
+		}
+	});
+	Object.defineProperty(this, 'y', {
+		get: function () {
+			return this.position.y;
+		},
+		set: function (y) {
+			this.position.y = y;
+		}
+	});
+	Object.defineProperty(this, 'z', {
+		get: function () {
+			return this.position.z;
+		},
+		set: function (z) {
+			this.position.z = z;
+		}
+	});
 
 	this.vx = 0;
 	this.vy = 0;
 	this.vz = 0;
 
-	this.alpha = 0;
+	this.alpha = Math.PI;
 	this.beta = 0;
 	this.gamma = 0;
 
 	this.grounded = false;
-	this.height = 4;
-
-	this.perspectiveM = function () {
-		var m = Matrix.RotationX(this.alpha)
-			.x(Matrix.RotationY(this.beta))
-			.x(Matrix.RotationZ(this.gamma)).ensure4x4()
-			.x(Matrix.Translation($V([this.x, this.y, this.z])).ensure4x4());
-		return m;
-	};
+	this.height = 1.5;
 
 	this.tick = function () {
 		var dvx = 0;
 		var dvy = 0;
 		if (keys[87] || keys[188]) {
-			dvx += Math.sin(this.gamma);
+			// forward
+			dvx += -Math.sin(this.gamma);
 			dvy += Math.cos(this.gamma);
 		} 
 		if (keys[79] || keys[83]) {
-			dvx += -Math.sin(this.gamma);
+			// backward
+			dvx += Math.sin(this.gamma);
 			dvy += -Math.cos(this.gamma);
 		} 
 		if (keys[65]) {
-			dvx += Math.cos(this.gamma);
+			// left
+			dvx += -Math.cos(this.gamma);
 			dvy += -Math.sin(this.gamma);
 		} 
 		if (keys[69] || keys[68]) {
-			dvx += -Math.cos(this.gamma);
+			// right
+			dvx += Math.cos(this.gamma);
 			dvy += Math.sin(this.gamma);
 		}
 
@@ -73,34 +92,37 @@ function Player () {
 		this.vz += -0.01;
 
 		this.x += this.vx;
-		if (level.above(this.x, this.y)) {
-			if (this.z < level.height + this.height) {
-				this.x -= this.vx;
-			}
+		if (this.collide()) {
+			this.x -= this.vx;
+			this.vx = 0;
 		}
 		this.y += this.vy;
-		if (level.above(this.x, this.y)) {
-			if (this.z < level.height + this.height) {
-				this.y -= this.vy;
-			}
+		if (this.collide()) {
+			this.y -= this.vy;
+			this.vy = 0;
 		}
-		this.z += this.vz;
 
 		this.grounded = false;
-		if (this.z < level.height + this.height) {
-			if (level.above(this.x, this.y)) {
-				this.z = level.height + this.height;
-				this.vz = 0;
-				this.grounded = true;
-			} else {
-				return (this.z < level.height);
-			}
+		this.z += this.vz;
+		if (this.collide()) {
+			this.z -= this.vz;
+			this.vz = 0;
+			this.grounded = true;
+		} else {
+			return (this.z < levels[levels.length-1].z);
 		}
+	};
+
+	this.collide = function () {
+		for (var i = 0; i < levels.length; i++) {
+			if (levels[i].collide(this.x, this.y, this.z, this.height)) return true;
+		}
+		return false;
 	};
 
 	this.turn = function (dx, dy) {
 		this.gamma -= dx / 256;
-		this.alpha += dy / 256;
+		this.alpha -= dy / 256;
 		if (this.alpha > Math.PI) this.alpha = Math.PI;
 		if (this.alpha < 0) this.alpha = 0;
 	}
