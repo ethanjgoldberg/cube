@@ -20,12 +20,12 @@ function Level (locations, x, y, z, size) {
 		pointLight.position.z = this.z + 100 * size;
 		scene.add(pointLight);
 
-		var rm = Math.pow(2, Math.floor(Math.random() * 4) + 1);
-		var bm = Math.pow(2, Math.floor(Math.random() * 4) + 1);
-		var gm = Math.pow(2, Math.floor(Math.random() * 4) + 1);
+		var rm = Math.pow(2, Math.floor(Math.random() * 4) + 1)-1;
+		var bm = Math.pow(2, Math.floor(Math.random() * 4) + 1)-1;
+		var gm = Math.pow(2, Math.floor(Math.random() * 4) + 1)-1;
 
 		var scm = Math.max(rm, bm, gm);
-		var sc = rgb((rm != scm)*rm*16, (gm != scm)*gm*16, (bm != scm)*bm*16);
+		var sc = rgb((rm == scm)*rm*16, (gm == scm)*gm*16, (bm == scm)*bm*16);
 		console.log(scm, rm, gm, bm, sc);
 
 		for (var i = 0; i < this.locations.length; i++) {
@@ -33,7 +33,7 @@ function Level (locations, x, y, z, size) {
 			var r = Math.floor(Math.random() * 16);
 			var b = Math.floor(Math.random() * 16);
 			var g = Math.floor(Math.random() * 16);
-			var c = (rm * r  * 256 + bm * b) * 256 + gm * g;
+			var c = rgb(rm * r, gm * g, bm * b);
 			var cube = new THREE.Mesh(
 					new THREE.CubeGeometry(this.size, this.size, this.size),
 					new THREE.MeshLambertMaterial({
