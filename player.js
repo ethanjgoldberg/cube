@@ -43,7 +43,9 @@ function Player () {
 	this.gamma = 0;
 
 	this.grounded = false;
-	this.height = 1.5;
+	this.height = 16;
+
+	this.groundSpeed = 32;
 
 	this.tick = function () {
 		var dvx = 0;
@@ -83,8 +85,8 @@ function Player () {
 			this.vz += .02;
 		}
 		if (this.grounded) {
-			this.vx += 16*dvx;
-			this.vy += 16*dvy;
+			this.vx += this.groundSpeed*dvx;
+			this.vy += this.groundSpeed*dvy;
 			this.vx *= .5;
 			this.vy *= .5;
 		}

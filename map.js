@@ -1,3 +1,7 @@
+function rgb (r, g, b) {
+	return (r * 256 + g) * 256 + b;
+}
+
 function Level (locations, x, y, z, size) {
 	this.locations = locations.slice(0);
 	this.z = z;
@@ -16,19 +20,33 @@ function Level (locations, x, y, z, size) {
 		pointLight.position.z = this.z + 100 * size;
 		scene.add(pointLight);
 
+		var rm = Math.pow(2, Math.floor(Math.random() * 4) + 1);
+		var bm = Math.pow(2, Math.floor(Math.random() * 4) + 1);
+		var gm = Math.pow(2, Math.floor(Math.random() * 4) + 1);
+
+		var scm = Math.max(rm, bm, gm);
+		var sc = rgb((rm != scm)*rm*16, (gm != scm)*gm*16, (bm != scm)*bm*16);
+		console.log(scm, rm, gm, bm, sc);
+
 		for (var i = 0; i < this.locations.length; i++) {
 			var l = this.locations[i];
+			var r = Math.floor(Math.random() * 16);
+			var b = Math.floor(Math.random() * 16);
+			var g = Math.floor(Math.random() * 16);
+			var c = (rm * r  * 256 + bm * b) * 256 + gm * g;
 			var cube = new THREE.Mesh(
 					new THREE.CubeGeometry(this.size, this.size, this.size),
 					new THREE.MeshLambertMaterial({
-						color: Math.floor(Math.random() * 16777216),
+						color: c,
+						ambient: c,
 					}));
 			cube.position.set(this.x + l[0], this.y + l[1], this.z + l[2]);
 			if (Math.random() < .09) {
 				var sphere = new THREE.Mesh(
 						new THREE.SphereGeometry(this.size/4 - 2, 32, 32),
 						new THREE.MeshLambertMaterial({
-							color: 0x0000ff
+							color: sc,
+							ambient: sc,
 						}));
 				sphere.position.set(this.x + l[0], this.y + l[1], this.z + l[2] + this.size);
 				this.spheres.push(sphere);
@@ -62,7 +80,6 @@ function Level (locations, x, y, z, size) {
 				this.spheres.splice(i, 1);
 			}
 		}
-		console.log(this.spheres.length);
 		if (this.spheres.length == 0) {
 			console.log('victory for our armed forces abroad.');
 		}

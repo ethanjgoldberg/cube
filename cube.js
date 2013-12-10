@@ -41,7 +41,7 @@ function go () {
 			}));
 	//scene.add(sphere);
 
-	var ambientLight = new THREE.AmbientLight(0x333399);
+	var ambientLight = new THREE.AmbientLight(0x999999);
 	scene.add(ambientLight);
 
 	var density = .4;
