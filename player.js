@@ -72,8 +72,8 @@ function Player () {
 		if (dvx || dvy) {
 			var mag = Math.sqrt(dvx * dvx +
 					dvy * dvy);
-			dvx /= mag * 256;
-			dvy /= mag * 256;
+			dvx /= mag * 64;
+			dvy /= mag * 64;
 
 			this.vx += dvx;
 			this.vy += dvy;
@@ -89,22 +89,23 @@ function Player () {
 			this.vy *= .5;
 		}
 
-		this.vz += -0.01;
+		var l;
 
 		this.x += this.vx;
-		if (this.collide()) {
+		if (l = this.collide()) {
 			this.x -= this.vx;
 			this.vx = 0;
 		}
 		this.y += this.vy;
-		if (this.collide()) {
+		if (l = this.collide()) {
 			this.y -= this.vy;
 			this.vy = 0;
 		}
 
+		this.vz += -0.01;
 		this.grounded = false;
 		this.z += this.vz;
-		if (this.collide()) {
+		if (l = this.collide()) {
 			this.z -= this.vz;
 			this.vz = 0;
 			this.grounded = true;
@@ -115,7 +116,7 @@ function Player () {
 
 	this.collide = function () {
 		for (var i = 0; i < levels.length; i++) {
-			if (levels[i].collide(this.x, this.y, this.z, this.height)) return true;
+			if (levels[i].collide(this.position, this.height)) return true;
 		}
 		return false;
 	};

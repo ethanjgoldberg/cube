@@ -5,7 +5,7 @@ function go () {
 	var VIEW_ANGLE = 45,
 	    ASPECT = WIDTH / HEIGHT,
 	    NEAR = 0.1,
-	    FAR = 10000;
+	    FAR = 100000;
 
 	var container = document.getElementById('c');
 	container.requestPointerLock = container.requestPointerLock ||
@@ -25,7 +25,7 @@ function go () {
 	camera.rotation.order = "ZYX";
 	camera.position.z = 300;
 
-	var scene = new THREE.Scene();
+	scene = new THREE.Scene();
 
 	scene.add(camera);
 	renderer.setSize(WIDTH, HEIGHT);
@@ -44,9 +44,9 @@ function go () {
 	var ambientLight = new THREE.AmbientLight(0x333399);
 	scene.add(ambientLight);
 
-	var density = .0005;
-	var hw = 50, hh = 50;
-	levels = [generateLevel(density, hw, hh, player.x, player.y, 0)];
+	var density = .4;
+	var hh = 1000;
+	levels = [generateLevel(density, hh, player.x, player.y, 0)];
 	levels[0].init(scene);
 
 	(function tick() {

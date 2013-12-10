@@ -1,18 +1,19 @@
-function Level (locations, x, y, z) {
+function Level (locations, x, y, z, size) {
 	this.locations = locations.slice(0);
 	this.z = z;
 	this.x = x;
 	this.y = y;
 
-	this.size = 256;
+	this.size = size;
 
 	this.cubes = [];
+	this.spheres = [];
 
 	this.init = function (scene) {
-		var pointLight = new THREE.DirectionalLight(0xFFFFFF);
-		pointLight.position.x = 10;
-		pointLight.position.y = 50;
-		pointLight.position.z = this.z + 100;
+		var pointLight = new THREE.PointLight(0xFFFFFF);
+		pointLight.position.x = 10 * size;
+		pointLight.position.y = 50 * size;
+		pointLight.position.z = this.z + 100 * size;
 		scene.add(pointLight);
 
 		for (var i = 0; i < this.locations.length; i++) {
@@ -22,41 +23,72 @@ function Level (locations, x, y, z) {
 					new THREE.MeshLambertMaterial({
 						color: Math.floor(Math.random() * 16777216),
 					}));
-			cube.position.set(this.x + l[0]*this.size, this.y + l[1]*this.size, this.z + l[2]*this.size);
-			cube.castShadow = true;
-			cube.receiveShadow = true;
+			cube.position.set(this.x + l[0], this.y + l[1], this.z + l[2]);
+			if (Math.random() < .09) {
+				var sphere = new THREE.Mesh(
+						new THREE.SphereGeometry(this.size/4 - 2, 32, 32),
+						new THREE.MeshLambertMaterial({
+							color: 0x0000ff
+						}));
+				sphere.position.set(this.x + l[0], this.y + l[1], this.z + l[2] + this.size);
+				this.spheres.push(sphere);
+				scene.add(sphere);
+			}
 			this.cubes.push(cube);
 			scene.add(cube);
 		}
 	};
 
-	this.collide = function (x, y, z, height) {
+	this.collide = function (pos, height) {
 		var size = this.size;
 		var hsize = this.size / 2;
+		var x = pos.x;
+		var y = pos.y;
+		var z = pos.z;
 		for (var i = 0; i < this.locations.length; i++) {
 			var l = this.locations[i];
-			if (size * l[0] + this.x + hsize < x 
-					|| size * l[0] + this.x - hsize > x
-					|| size * l[1] + this.y + hsize < y
-					|| size * l[1] + this.y - hsize > y
-					|| size * l[2] + this.z + hsize < z - height
-					|| size * l[2] + this.z - hsize > z)
+			if (l[0] + this.x + hsize < x 
+					|| l[0] + this.x - hsize > x
+					|| l[1] + this.y + hsize < y
+					|| l[1] + this.y - hsize > y
+					|| l[2] + this.z + hsize < z - height
+					|| l[2] + this.z - hsize > z)
 				continue;
-			return true;
+			return l;
+		}
+		for (var i = 0; i < this.spheres.length; i++) {
+			if (pos.distanceToSquared(this.spheres[i].position) < this.spheres[i].geometry.radius * this.spheres[i].geometry.radius) {
+				scene.remove(this.spheres[i]);
+				this.spheres.splice(i, 1);
+			}
+		}
+		console.log(this.spheres.length);
+		if (this.spheres.length == 0) {
+			console.log('victory for our armed forces abroad.');
 		}
 		return false;
 	};
 }
 
-function generateLevel (density, hwidth, hheight, ox, oy, z) {
-	var r = [];
-	for (var i = -hwidth; i < hwidth; i++) {
-		for (var j = -hheight; j < hheight; j++) {
-			for (var k = -hheight; k < hheight; k++) {
-				if (Math.random() < density)
-					r.push([i, j, k]);
+function generateLevel (density, hh, x, y, z) {
+	function c(result, depth, size) {
+		if (depth == 0) {
+			console.log(result.length + " cubes here.");
+			console.log(size);
+			return new Level(result, x, y, z, size*2);
+		}
+		var ret = [];
+		for (var i = 0; i < result.length; i++) {
+			var r = result[i].slice(0);
+			for (var j = 0; j < 8; j++) {
+				if (Math.random() < density) {
+					ret.push([r[0] + Math.floor(j / 4)*size,
+							r[1] + (Math.floor(j / 2) % 2)*size,
+							r[2] + (j % 2)*size]);
+				}
 			}
 		}
+		return c(ret, depth-1, size/2);
 	}
-	return new Level(r, ox, oy, z);
+	return c([[-hh, -hh, -hh]], 6, hh);
 }
