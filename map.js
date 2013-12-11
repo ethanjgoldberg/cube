@@ -35,6 +35,8 @@ function Level (locations, x, y, z, size) {
 		this.rootTone = 440;
 		this.scale = [0, 2, 5, 7, 10, 12];
 
+		this.geometry = THREE.BufferGeometryUtils.fromGeometry(new THREE.CubeGeometry(this.size, this.size, this.size));
+
 		for (var i = 0; i < this.locations.length; i++) {
 			var l = this.locations[i];
 			var r = Math.floor(Math.random() * 16);
@@ -42,7 +44,7 @@ function Level (locations, x, y, z, size) {
 			var g = Math.floor(Math.random() * 16);
 			var c = rgb(rm * r, gm * g, bm * b);
 			var cube = new THREE.Mesh(
-					new THREE.CubeGeometry(this.size, this.size, this.size),
+					this.geometry,
 					new THREE.MeshLambertMaterial({
 						color: c,
 						ambient: c,

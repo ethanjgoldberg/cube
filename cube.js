@@ -140,6 +140,7 @@ function go () {
 		//console.log(camera.position.x, camera.position.y, camera.position.z);
 
 		camera.rotation.set(player.alpha, player.beta, player.gamma);
+		//console.log(camera.rotation.x, camera.rotation.y, camera.rotation.z);
 
 		renderer.render(scene, camera);
 

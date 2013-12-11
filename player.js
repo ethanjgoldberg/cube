@@ -146,8 +146,19 @@ function Player () {
 	}
 
 	this.moveHandler = function (e) {
-		var dx = e.movementX || e.mozMovementX || e.webkitMovementX;
-		var dy = e.movementY || e.mozMovementY || e.webkitMovementY;
+		var dx, dy;
+		if (e.movementX != undefined) {
+			dx = e.movementX;
+			dy = e.movementY; //maybe not a good assumption, but i give so few fucks.
+		} else if (e.mozMovementX != undefined) {
+			dx = e.mozMovementX;
+			dy = e.mozMovementY;
+		} else if (e.webkitMovementX) {
+			dx = e.webkitMovementX;
+			dy = e.webkitMovementY;
+		} else {
+			return;
+		}
 
 		this.turn(dx, dy);
 	}
