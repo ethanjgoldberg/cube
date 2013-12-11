@@ -5,6 +5,20 @@ addEventListener('keydown', function (e) {
 addEventListener('keyup', function (e) {
 	keys[e.keyCode] = false;
 });
+var pink = false;
+addEventListener('keydown', function (e) {
+	if (!pink && e.keyCode == 32) {
+		pink = true;
+		audio.jetPack.gain.value = .01;
+	}
+});
+addEventListener('keyup', function (e) {
+	if (pink && e.keyCode == 32) {
+		pink = false;
+		audio.jetPack.gain.value = 0;
+	}
+});
+
 
 function Player () {
 	this.position = new THREE.Vector3(0, 0, 40);
@@ -42,9 +56,10 @@ function Player () {
 	this.beta = 0;
 	this.gamma = 0;
 
+	this.spheres = 0;
 	this.grounded = false;
-	this.height = 16;
 
+	this.height = 16;
 	this.groundSpeed = 32;
 
 	this.tick = function () {

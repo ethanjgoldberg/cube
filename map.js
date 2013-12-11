@@ -2,6 +2,10 @@ function rgb (r, g, b) {
 	return (r * 256 + g) * 256 + b;
 }
 
+function choice(list) {
+	return list[Math.floor(Math.random() * list.length)];
+}
+
 function Level (locations, x, y, z, size) {
 	this.locations = locations.slice(0);
 	this.z = z;
@@ -27,6 +31,9 @@ function Level (locations, x, y, z, size) {
 		var scm = Math.max(rm, bm, gm);
 		var sc = rgb((rm == scm)*rm*16, (gm == scm)*gm*16, (bm == scm)*bm*16);
 		console.log(scm, rm, gm, bm, sc);
+
+		this.rootTone = 440;
+		this.scale = [0, 2, 5, 7, 10, 12];
 
 		for (var i = 0; i < this.locations.length; i++) {
 			var l = this.locations[i];
@@ -78,6 +85,11 @@ function Level (locations, x, y, z, size) {
 			if (pos.distanceToSquared(this.spheres[i].position) < this.spheres[i].geometry.radius * this.spheres[i].geometry.radius) {
 				scene.remove(this.spheres[i]);
 				this.spheres.splice(i, 1);
+				player.spheres++;
+				audio.playNote(this.rootTone * Math.pow(2,Math.floor(Math.random()*Math.log(player.spheres))-3),
+					       	choice(this.scale),
+					       	Math.pow(2, Math.floor(Math.random()*8)-2),
+					       	0.125 * Math.floor(1 + Math.random()*8));
 			}
 		}
 		if (this.spheres.length == 0) {
