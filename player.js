@@ -127,14 +127,12 @@ function Player () {
 			this.vz = 0;
 			this.grounded = true;
 		} else {
-			return (this.z < levels[levels.length-1].z);
+			return (this.z < level.z);
 		}
 	};
 
 	this.collide = function () {
-		for (var i = 0; i < levels.length; i++) {
-			if (levels[i].collide(this.position, this.height)) return true;
-		}
+		if (level.collide(this.position, this.height)) return true;
 		return false;
 	};
 

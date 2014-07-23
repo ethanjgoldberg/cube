@@ -64,10 +64,10 @@ function initAudio() {
 
 		var now = ctx.currentTime;
 		gainNode.gain.setValueAtTime(now, 0);
-		console.log(.125 / Math.log(root / 20));
+		var startTime = now + .1 - (now % 0.125);
 		gainNode.gain.linearRampToValueAtTime(
-				.125 / Math.log(root / 20), now + .1);
-		gainNode.gain.linearRampToValueAtTime(0, now + .1 + dur);
+				.125 / Math.log(root / 20), startTime);
+		gainNode.gain.linearRampToValueAtTime(0, startTime + dur);
 
 		oscillator.start(now);
 	}
@@ -128,14 +128,27 @@ function go () {
 	scene.add(ambientLight);
 
 	var density = .4;
+	var rootTone = 440;
 	var hh = 1000;
-	levels = [generateLevel(density, hh, player.x, player.y, 0)];
-	levels[0].init(scene);
+	level = generateLevel(density, hh, player.x, player.y, 0);
+	level.init(scene);
 
 	audio = initAudio();
 
 	(function tick() {
 		player.tick();
+		if (player.position.z < level.z - 2000) {
+			level.denit(scene);
+			player.vx = 0;
+			player.vy = 0;
+			player.vz = 0;
+			level = generateLevel(density, hh, player.x, player.y, player.z);
+			if (rootTone >= 440) {
+				rootTone *= 2/3;
+			} else rootTone *= 4/3;
+			level.rootTone = rootTone;
+			level.init(scene);
+		}
 		camera.position = player.position;
 		//console.log(camera.position.x, camera.position.y, camera.position.z);
 

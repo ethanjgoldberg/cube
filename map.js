@@ -33,7 +33,7 @@ function Level (locations, x, y, z, size) {
 		console.log(scm, rm, gm, bm, sc);
 
 		this.rootTone = 440;
-		this.scale = [0, 2, 5, 7, 10, 12];
+		this.scale = [0, 2, 3, 5, 7, 9, 11, 12];
 
 		this.geometry = THREE.BufferGeometryUtils.fromGeometry(new THREE.CubeGeometry(this.size, this.size, this.size));
 
@@ -66,6 +66,16 @@ function Level (locations, x, y, z, size) {
 		}
 	};
 
+	this.denit = function (scene) {
+		for (var i =0; i < this.cubes.length; i++) {
+			scene.remove(this.cubes[i]);
+			this.cubes[i].geometry.dispose();
+		}
+		for (var i = 0; i < this.spheres.length; i++) {
+			scene.remove(this.spheres[i]);
+		}
+	}
+
 	this.collide = function (pos, height) {
 		var size = this.size;
 		var hsize = this.size / 2;
@@ -90,7 +100,7 @@ function Level (locations, x, y, z, size) {
 				player.spheres++;
 				audio.playNote(this.rootTone * Math.pow(2,Math.floor(Math.random()*Math.log(player.spheres))-3),
 					       	choice(this.scale),
-					       	Math.pow(2, Math.floor(Math.random()*8)-2),
+					       	Math.pow(3, Math.floor(Math.random() * 1.5)) * Math.pow(2, Math.floor(Math.random()*7)-2),
 					       	0.125 * Math.floor(1 + Math.random()*8));
 			}
 		}
